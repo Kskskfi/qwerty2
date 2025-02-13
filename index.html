@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Менеджер заметок</title>
+    <script defer src="js/vue.min.js"></script>
+    <script defer src="js/main.js"></script>
+    <link rel="stylesheet" href="css/main.css">
+</head>
+<body>
+    <div id="app">
+        <h1>Менеджер заметок</h1>
+    
+        <div class="columns">
+            
+            <div class="column">
+                <h2>Новые</h2>
+                
+                
+                <div v-if="showAddNoteForm">
+                    <h3>Добавить заметку</h3>
+                    <form @submit.prevent="addNote">
+                        <div>
+                            <label for="noteTitle">Заголовок:</label>
+                            <input type="text" v-model="newNoteTitle" required>
+                        </div>
+                
+                        <div v-for="(item, index) in newNoteItems" :key="index">
+                            <input type="text" v-model="item.text" placeholder="Введите пункт" required>
+                            
+                            <button v-if="newNoteItems.length === 3" @click.prevent="clearItem(index)">Очистить</button>
+                            
+                            <button v-if="newNoteItems.length >= 4" @click.prevent="removeItem(index)">Удалить</button>
+                        </div>
+                
+                        <button v-if="canAddItem" @click.prevent="addItem">Добавить пункт</button>
+                        <button type="submit" :disabled="!newNoteTitle.trim()">Добавить заметку</button>
+                    </form>
+                </div>
+                
+                
+                
+    
+                
+                <div v-else>
+                    <button @click="showAddNoteForm = true">Добавить новую заметку</button>
+                </div>
+    
+                
+                <transition-group name="move" tag="div">
+                    <div v-for="(note, index) in columns[0]" :key="note.id" :class="{'note': true}">
+                        <h3>{{ note.title }}</h3>
+                        <ul>
+                            <li v-for="(item, i) in note.items" :key="i">
+                                <input type="checkbox" v-model="item.done" @change="updateProgress()">
+                                {{ item.text }}
+                            </li>
+                        </ul>
+                    </div>
+                </transition-group>
+            </div>
+    
+            
+            <div class="column">
+                <h2>В процессе</h2>
+                <transition-group name="move" tag="div">
+                    <div v-for="(note, index) in columns[1]" :key="note.id" :class="{'note': true}">
+                        <h3>{{ note.title }}</h3>
+                        <ul>
+                            <li v-for="(item, i) in note.items" :key="i">
+                                <input type="checkbox" v-model="item.done" @change="updateProgress()">
+                                {{ item.text }}
+                            </li>
+                        </ul>
+                    </div>
+                </transition-group>
+            </div>
+    
+            
+            <div class="column">
+                <h2>Завершенные</h2>
+                <transition-group name="move" tag="div">
+                    <div v-for="(note, index) in columns[2]" :key="note.id" class="note">
+                        <h3>{{ note.title }}</h3>
+                        <p>Завершено: {{ note.completedAt }}</p>
+                    </div>
+                </transition-group>
+            </div>
+        </div>
+    </div>
+    
+</body>
+</html>
