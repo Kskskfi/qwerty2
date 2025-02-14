@@ -33,6 +33,11 @@
 
                     <button v-if="canAddItem" @click.prevent="addItem" :disabled="!canAddItem">Добавить пункт</button>
                     <button type="submit" :disabled="!newNoteTitle.trim()">Добавить заметку</button>
+
+                    <!-- Кнопка "Приоритетная карточка" -->
+                    <label>
+                        <input type="checkbox" v-model="isPriority"> Приоритетная карточка
+                    </label>
                 </form>
             </div>
 

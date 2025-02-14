@@ -5,8 +5,10 @@ new Vue({
         showAddNoteForm: false, // Показывать ли форму добавления заметки
         newNoteTitle: '', // Заголовок новой заметки
         newNoteItems: [{ text: '' }, { text: '' }, { text: '' }], // Пункты новой заметки
+        isPriority: false, // Приоритетная карточка
         canAddNote: true, // Можно ли добавлять новую заметку
-        canMarkItems: true // Можно ли отмечать пункты в первом столбце
+        canMarkItems: true, // Можно ли отмечать пункты в первом столбце
+        isPriorityCardActive: false // Есть ли активная приоритетная карточка
     },
     computed: {
         // Можно ли добавить новый пункт в форму
@@ -42,7 +44,7 @@ new Vue({
             // Обновляем состояние disabled для каждого пункта в карточках первого столбца
             this.columns[0].forEach(note => {
                 note.items.forEach(item => {
-                    item.disabled = !this.canMarkItems;
+                    item.disabled = (!this.canMarkItems && !note.isPriority) || this.isPriorityCardActive;
                 });
             });
 
@@ -51,28 +53,37 @@ new Vue({
             console.log("Has ready note:", hasReadyNote); // Лог для отладки
         },
 
-        // Проверка, есть ли карточки в первом столбце, готовые к перемещению
-        checkForReadyNotes() {
-            // Если во втором столбце есть место
-            if (this.columns[1].length < 5) {
-                // Ищем карточки в первом столбце, готовые к перемещению
-                this.columns[0] = this.columns[0].filter(note => {
-                    const completed = note.items.filter(i => i.done).length;
-                    const total = note.items.length;
+        // Проверка, есть ли активная приоритетная карточка
+        checkPriorityCard() {
+            // Проверяем, есть ли приоритетная карточка в первом или втором столбце
+            const hasPriorityCard = this.columns[0].some(note => note.isPriority) ||
+                this.columns[1].some(note => note.isPriority);
 
-                    if (completed / total >= 0.5) {
-                        // Перемещаем карточку во второй столбец
-                        this.columns[1].push(note);
-                        return false; // Удаляем карточку из первого столбца
-                    }
-                    return true; // Оставляем карточку в первом столбце
+            // Если есть приоритетная карточка, блокируем все чекбоксы, кроме её собственных
+            this.isPriorityCardActive = hasPriorityCard;
+
+            // Обновляем состояние блокировки для всех карточек
+            this.columns.forEach(column => {
+                column.forEach(note => {
+                    note.items.forEach(item => {
+                        item.disabled = this.isPriorityCardActive && !note.isPriority;
+                    });
                 });
+            });
 
-                // Обновляем состояния
-                this.checkCanAddNote();
-                this.checkCanMarkItems();
-                this.saveData();
+            // Если приоритетная карточка переместилась в третий столбец, разблокируем все чекбоксы
+            if (!hasPriorityCard) {
+                this.columns.forEach(column => {
+                    column.forEach(note => {
+                        note.items.forEach(item => {
+                            item.disabled = false;
+                        });
+                    });
+                });
             }
+
+            // Проверяем блокировку для первого столбца
+            this.checkCanMarkItems();
         },
 
         // Переключение видимости формы добавления заметки
@@ -82,6 +93,7 @@ new Vue({
             if (!this.showAddNoteForm) {
                 this.newNoteTitle = '';
                 this.newNoteItems = [{ text: '' }, { text: '' }, { text: '' }];
+                this.isPriority = false;
             }
         },
 
@@ -99,17 +111,24 @@ new Vue({
                 items: items,
                 completedAt: null,
                 isFavorite: false,
+                isPriority: this.isPriority // Добавляем флаг приоритетности
             };
 
             this.columns[0].push(newNote);
 
+            // Если карточка приоритетная, перемещаем её вверх
+            if (newNote.isPriority) {
+                this.columns[0].sort((a, b) => b.isPriority - a.isPriority);
+            }
+
             this.newNoteTitle = '';
             this.newNoteItems = [{ text: '' }, { text: '' }, { text: '' }];
             this.showAddNoteForm = false;
+            this.isPriority = false;
 
             this.saveData();
             this.checkCanAddNote();
-            this.checkCanMarkItems(); // Проверяем блокировку после добавления заметки
+            this.checkPriorityCard(); // Проверяем, есть ли приоритетная карточка
         },
 
         // Обновление прогресса и перемещение карточек между столбцами
@@ -120,7 +139,12 @@ new Vue({
                 let total = note.items.length;
 
                 if (completed / total >= 0.5) {
-                    // Если выполнено > 50% пунктов, но второй столбец заполнен, оставляем карточку в первом столбце
+                    // Если карточка приоритетная, перемещаем её, даже если во втором столбце 5 карточек
+                    if (note.isPriority) {
+                        this.columns[1].unshift(note); // Добавляем в начало второго столбца
+                        return false;
+                    }
+                    // Если второй столбец заполнен, оставляем карточку в первом столбце
                     if (this.columns[1].length >= 5) {
                         return true;
                     }
@@ -137,18 +161,22 @@ new Vue({
 
                 if (completed) {
                     note.completedAt = new Date().toLocaleString();
-                    this.columns[2].unshift(note);
+                    this.columns[2].unshift(note); // Добавляем в начало третьего столбца
                     return false; // Удаляем карточку из второго столбца
                 }
                 return true; // Оставляем карточку во втором столбце
             });
 
-            // Проверяем, есть ли карточки в первом столбце, готовые к перемещению
-            this.checkForReadyNotes();
+            // Сортируем карточки в каждом столбце: приоритетные всегда сверху
+            this.columns.forEach(column => {
+                column.sort((a, b) => b.isPriority - a.isPriority);
+            });
+
+            // Проверяем, есть ли активная приоритетная карточка
+            this.checkPriorityCard();
 
             // Обновляем состояния
             this.checkCanAddNote();
-            this.checkCanMarkItems(); // Проверяем, нужно ли блокировать первый столбец
             this.saveData();
 
             console.log("Columns after update:", this.columns); // Лог для отладки
@@ -166,7 +194,7 @@ new Vue({
                 this.columns = JSON.parse(data);
             }
             this.checkCanAddNote();
-            this.checkCanMarkItems();
+            this.checkPriorityCard(); // Проверяем, есть ли приоритетная карточка
         },
 
         // Очистка localStorage
