@@ -31,6 +31,7 @@ new Vue({
 
             const isSecondColumnFull = this.columns[1].length >= 5;
 
+
             const hasReadyNote = this.columns[0].some(note => {
                 const completed = note.items.filter(i => i.done).length;
                 const total = note.items.length;
@@ -168,6 +169,17 @@ new Vue({
                 return true;
             });
 
+            this.columns[1] = this.columns[1].filter(note => {
+                let completed = note.items.filter(i => i.done).length;
+                let total = note.items.length;
+
+
+                if (completed / total < 0.5) {
+                    this.columns[0].push(note);
+                    return false;
+                }
+                return true;
+            });
 
             this.columns.forEach(column => {
                 column.sort((a, b) => b.isPriority - a.isPriority);
