@@ -31,7 +31,6 @@ new Vue({
 
             const isSecondColumnFull = this.columns[1].length >= 5;
 
-
             const hasReadyNote = this.columns[0].some(note => {
                 const completed = note.items.filter(i => i.done).length;
                 const total = note.items.length;
@@ -178,10 +177,31 @@ new Vue({
             this.checkPriorityCard();
 
 
+            this.moveReadyNotesToSecondColumn();
+
+
             this.checkCanAddNote();
             this.saveData();
 
             console.log("Columns after update:", this.columns);
+        },
+
+
+        moveReadyNotesToSecondColumn() {
+
+            if (this.columns[1].length < 5) {
+                this.columns[0] = this.columns[0].filter(note => {
+                    let completed = note.items.filter(i => i.done).length;
+                    let total = note.items.length;
+
+                    if (completed / total >= 0.5) {
+
+                        this.columns[1].push(note);
+                        return false;
+                    }
+                    return true;
+                });
+            }
         },
 
 
@@ -199,10 +219,12 @@ new Vue({
             this.checkPriorityCard();
         },
 
+
         clearStorage() {
             localStorage.removeItem('notes');
             this.columns = [[], [], []];
         },
+
 
         addItem() {
             if (this.canAddItem) {
