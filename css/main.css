@@ -1,37 +1,45 @@
 body {
+    font-family: Arial, sans-serif;
+    background-color: #2c2c2c;
+    margin: 0;
+    padding: 20px;
+}
+
+#app {
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+h1 {
     text-align: center;
-    background-color: rgb(40, 38, 38);
-    color: #f3f0f0;
-    font-family: Calibri;
+    color: #d3d3d3;
 }
 
 .columns {
     display: flex;
-    justify-content: center;
-    gap: 30px;
+    justify-content: space-between;
+    gap: 20px;
 }
 
 .column {
-    width: 300px;
-    padding: 10px;
-    background-color: #5e5d5d;
-    border-radius: 5px;
-    height: 80vh; /* Фиксированная высота колонки */
-    overflow-y: auto; /* Добавляем вертикальный скролл */
-    scrollbar-width: none; /* Скрываем скроллбар в Firefox */
+    flex: 1;
+    background-color: #7c938f;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
-
-/* Скрываем скроллбар в Chrome, Safari и Edge */
-.column::-webkit-scrollbar {
-    display: none;
-}
-
 form {
+    display: flex;
+    flex-direction: column;
+    gap: 10px 0px;
     text-align: left;
-    background-color: #444;
+    background-color: rgb(148, 184, 177);
+    border-radius: 4px;
     padding: 10px;
     border-radius: 5px;
     margin-bottom: 10px;
+    border: 1px solid #a9d3cb;
+
 }
 
 form input {
@@ -45,60 +53,73 @@ form input {
 form button {
     margin-right: 5px;
 }
-
 .note {
+    background-color: #aad6ce;
     padding: 10px;
-    margin: 10px;
-    border: 1px solid #ccc;
-    border-radius: 5px;
-    transition: all 0.3s ease;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
+    margin-bottom: 10px;
+    border-radius: 4px;
+    border: 1px solid #ddd;
+    position: relative;
+}
+
+.note.priority {
+    border: 3px solid #ecc661; /* Желтая рамка для приоритетной карточки */
+    background-color: #5cc1b7; /* Светло-желтый фон */
 }
 
 .note.completed {
+    background-color: #91b192;
+}
 
-    color: white;
+.priority-label {
+    font-weight: bold;
+    color: #f7d742; /* Желтый цвет для текста "Приоритетная" */
+    margin-bottom: 10px;
+}
+
+.note h3 {
+    margin-top: 0;
 }
 
 .note ul {
-    text-align: left;
-    list-style: none;
+    list-style-type: none;
     padding: 0;
-    margin: 0;
-    width: 100%;
 }
 
 .note li {
-    padding: 5px 0;
-    width: 100%;
+    display: flex;
+    align-items: center;
+    gap: 10px;
 }
 
 button {
-    padding: 5px 10px;
-    border-radius: 5px;
+    background-color: #007bff;
+    color: #fff;
     border: none;
-    margin-bottom: 20px;
-    background-color: #dcdbdb;
+    padding: 5px 10px;
+    border-radius: 4px;
     cursor: pointer;
     transition: all ease-out 0.3s;
+}
+#addOrDelite{
+    margin: 10px 0px 20px;
+    padding: 8px 15px;
 }
 
 button:hover {
     transform: scale(102%);
 }
-
 button:disabled {
-    opacity: 0.5;
+    background-color: #737373;
     cursor: not-allowed;
+    color: #a3a3a3;
 }
 
 .move-enter-active, .move-leave-active {
-    transition: all 0.5s ease;
+    transition: opacity 0.5s, transform 0.5s;
 }
 
-.move-enter-from, .move-leave-to {
+.move-enter, .move-leave-to {
     opacity: 0;
-    transform: translateY(30px);
+    transform: translateY(20px);
 }
